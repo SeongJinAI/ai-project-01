@@ -1,0 +1,47 @@
+@font-face{font-family:OrbitKR;src:url("assets/NotoSansKR-Regular.otf")}*{box-sizing:border-box}body{margin:0;overflow:hidden;font-family:OrbitKR,system-ui;color:#eee8f5;user-select:none}.handle{text-align:center;font-size:10px;letter-spacing:3px;padding:8px;-webkit-app-region:drag;color:#d1bfdc;text-shadow:0 1px 5px #000}button{border:0;cursor:pointer;background:none;color:inherit}.pet{display:block;margin:auto;width:160px;height:150px;padding:0;filter:drop-shadow(0 6px 8px #0007)}svg{width:100%;height:100%;overflow:visible}.cat{transform-origin:80px 130px;animation:breathe 3s ease-in-out infinite}.cape{transform-origin:80px 75px;transition:transform .3s}.pet:hover .cape{transform:scaleX(1.12)}.pet.spreading .cape{transform:scale(1.8,1.2)}.pet.spreading .cat{animation:none}.eyes{transform-origin:80px 52px;animation:blink 6s infinite}.hint{text-align:center;font-size:9px;margin-top:3px;color:#d7c6e3;text-shadow:0 1px 5px #000}.quit{position:absolute;right:5px;top:2px;font-size:16px;color:#c5b5cf}@keyframes breathe{50%{transform:translateY(-3px) rotate(-2deg)}}@keyframes blink{0%,44%,48%,100%{transform:scaleY(1)}46%{transform:scaleY(.12)}}@media(prefers-reduced-motion:reduce){.cat,.eyes{animation:none}}
+
+body{width:180px;height:250px;transform-origin:0 0}.pet{touch-action:none;cursor:grab}.pet:active{cursor:grabbing}.size-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px;background:#201d2ade;border:1px solid #78678466;border-radius:12px;width:105px;margin-left:auto;margin-right:auto;height:24px}.size-controls button{font-size:17px;padding:0 4px}.size-controls span{font-size:9px;color:#d5c5e3}.casting-arm{transform-origin:96px 93px}.pet.casting .cat{animation:cat-cast .95s ease-in-out both}.pet.casting .casting-arm{animation:arm-cast .95s ease-in-out both}.pet.casting .cape{transform-origin:116px 80px;animation:cloak-cast .95s cubic-bezier(.4,0,.2,1) both}
+@keyframes cat-cast{0%{transform:rotate(0)}35%{transform:translate(-5px,3px) rotate(-9deg)}65%{transform:translate(3px,-3px) rotate(7deg)}100%{transform:none}}
+@keyframes arm-cast{0%{transform:rotate(0)}35%{transform:rotate(-65deg)}65%{transform:rotate(45deg)}100%{transform:rotate(0)}}
+@keyframes cloak-cast{0%{transform:none}35%{transform:rotate(-32deg) scaleX(.65)}65%{transform:rotate(35deg) scale(1.6,1.1)}85%{transform:rotate(15deg) scale(2.3,1.6);opacity:.8}100%{transform:scale(2.6,1.8);opacity:0}}
+@media(prefers-reduced-motion:reduce){.pet.casting .cat,.pet.casting .casting-arm,.pet.casting .cape{animation-duration:.01s}}
+
+/* 고양이 머리 위 시계 · 알람 패널 · 알람 비행 */
+.clock{display:flex;align-items:center;justify-content:center;gap:6px;height:20px;margin:0 auto 2px;padding:0 9px;width:max-content;min-width:58px;border-radius:10px;background:#201d2ade;border:1px solid #78678466;font-size:11px;letter-spacing:1.5px;color:#eadff3;font-variant-numeric:tabular-nums;text-shadow:0 1px 4px #000;transition:box-shadow .3s,border-color .3s}
+.clock:hover{border-color:#a285be}
+.alarm-badge{display:none;font-size:9px;letter-spacing:.3px;color:#f1dd9a;white-space:nowrap}
+body.has-alarm .alarm-badge,body.ringing .alarm-badge{display:inline}
+body.ringing .clock{border-color:#f1dd9a;animation:ring-blink 1s steps(2,end) infinite}
+@keyframes ring-blink{50%{box-shadow:0 0 0 3px #f1dd9a55,0 0 16px #f1dd9a}}
+.alarm{position:absolute;left:10px;right:10px;top:56px;bottom:6px;z-index:3;display:flex;flex-direction:column;gap:4px;padding:8px 9px;border-radius:12px;background:#201d2af2;border:1px solid #78678488;box-shadow:0 10px 30px #0008;font-size:11px;color:#eadff3}
+.alarm[hidden]{display:none}
+.alarm label{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.alarm input{font:inherit;font-size:12px;padding:2px 5px;border-radius:6px;border:1px solid #78678466;background:#2a2537;color:#f2eaf8;color-scheme:dark;font-variant-numeric:tabular-nums}
+.alarm-actions{display:flex;gap:6px}
+.alarm-actions button{flex:1;padding:5px 0;border-radius:7px;background:#3a3150;font-size:11px}
+.alarm-actions button[type=submit]{background:#d1e4b5;color:#27321f}
+.alarm p{margin:0;font-size:10px;line-height:1.5;color:#cdbfd8;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.alarm .fields{display:flex;flex-direction:column;gap:4px}
+body.ringing .alarm .fields{display:none}
+.ring-actions{display:none;gap:6px}
+body.ringing .ring-actions{display:flex}
+.ring-actions button{flex:1;padding:5px 0;border-radius:7px;background:#3a3150;font-size:11px}
+#alarm-stop{background:#d1e4b5;color:#27321f}
+.alarm-presets,.alarm-toggles{display:flex;gap:4px;justify-content:space-between}
+.alarm-presets button{flex:1;padding:3px 0;border-radius:6px;background:#2f2942;border:1px solid #78678444;font-size:10px}
+.alarm-presets button:hover{background:#3a3150;color:inherit}
+.alarm-toggles label{display:flex;align-items:center;gap:4px;font-size:10px;justify-content:flex-start}
+.alarm input[type=checkbox]{accent-color:#d1e4b5;margin:0}
+.alarm input[type=text]{width:96px}
+.tail{transform-origin:104px 116px}
+.pet.flying{filter:drop-shadow(0 6px 8px #0007) drop-shadow(0 0 14px #f1dd9a55)}
+.pet.flying .cat{transform-origin:80px 88px;animation:none;transform:rotate(var(--fly-angle,0deg));transition:transform .35s ease}
+.pet.flying .cape{transform-origin:80px 68px;transform:translateY(12px) scale(1.15,1.8);transition:transform .4s ease}
+.pet.flying .casting-arm{transform:rotate(-105deg);transition:transform .3s}
+.pet.flying .tail{animation:tail-fly .4s ease-in-out infinite alternate}
+.pet.flying .eyes{animation:none;transform:scale(1.1,.85)}
+@keyframes tail-fly{from{transform:rotate(-16deg)}to{transform:rotate(12deg)}}
+body.flying .handle,body.flying .hint,body.flying .size-controls,body.flying .quit,body.flying .alarm{opacity:0;pointer-events:none}
+body.flying .handle{-webkit-app-region:no-drag}
+body.flying .clock{border-color:#f1dd9a;box-shadow:0 0 14px #f1dd9a88}
+@media(prefers-reduced-motion:reduce){.pet.flying .tail{animation:none}body.ringing .clock{animation:none}}
