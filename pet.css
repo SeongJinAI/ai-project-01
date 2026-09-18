@@ -45,3 +45,7 @@ body.flying .handle,body.flying .hint,body.flying .size-controls,body.flying .qu
 body.flying .handle{-webkit-app-region:no-drag}
 body.flying .clock{border-color:#f1dd9a;box-shadow:0 0 14px #f1dd9a88}
 @media(prefers-reduced-motion:reduce){.pet.flying .tail{animation:none}body.ringing .clock{animation:none}}
+body.flight-overlay{width:100vw;height:100vh;background:transparent;transform:none!important;overflow:hidden}
+body.flight-overlay .handle,body.flight-overlay .clock,body.flight-overlay .alarm,body.flight-overlay .hint,body.flight-overlay .size-controls,body.flight-overlay .quit{display:none}
+body.flight-overlay .pet{position:absolute;left:0;top:0;margin:0;transform-origin:0 0;will-change:transform;pointer-events:none;cursor:default}
+body.flying:not(.flight-overlay) .pet,body.flying:not(.flight-overlay) .clock{visibility:hidden}

@@ -11,7 +11,9 @@
 | `Ctrl+C` (macOS `Cmd+C`) | 카드 선택, 글자 선택 없음 | 카드의 질문과 답변을 `질문\n\n답변` 텍스트로 클립보드에 복사하고 토스트 표시 |
 | `Ctrl+C` | 입력창 또는 화면에서 글자를 선택 중 | 기본 복사 동작 유지(선택한 글자만 복사) |
 
-`Alt`/`Shift`가 함께 눌리거나 한글 조합 중(`isComposing`)이면 무시한다. 키 판별은 `key`가 영문자일 때는 `key`, 한글 IME처럼 `ㅈ`/`ㅊ`가 올 때는 물리 키 `code`(`KeyW`/`KeyC`)를 사용한다.
+`Alt`/`Shift`가 함께 눌리거나 한글 조합 중(`isComposing`)이면 무시한다.
+
+캔버스 빈 곳 조작(2026-09-18 변경): 그냥 드래그 = 화면 이동, `Ctrl`/`Cmd`+드래그 = 카드 생성(`질문 그리기` 도구가 켜져 있으면 드래그만으로 생성), 휠 = 화면 이동, `Ctrl`+휠 = 커서 기준 확대·축소. Ctrl을 누르면 커서가 십자, 이동 중에는 손 모양으로 바뀐다. 키 판별은 `key`가 영문자일 때는 `key`, 한글 IME처럼 `ㅈ`/`ㅊ`가 올 때는 물리 키 `code`(`KeyW`/`KeyC`)를 사용한다.
 
 ```
 사용자 Ctrl+W
@@ -74,18 +76,18 @@ main.cjs  before-input-event ──(Ctrl/Cmd + W?)──▶ preventDefault ─�
 ### 비행 경로(main.cjs `flyAround`)
 
 ```
-모든 모니터 workArea 합집합 ─▶ 창 크기만큼 안쪽으로 들인 사각형 R
-현재 위치 P ─▶ R의 가장자리에서 가장 가까운 점 Q
-경로: P → Q → (시계 방향으로 네 모서리) → Q → P
-길이 L, 시간 = clamp(L / 1200px/s, 3.5s, 10s), easeInOutQuad
+모든 모니터 workArea 합집합 ─▶ 창 크기만큼 안쪽으로 들인 사각형 R (모서리 TL·TR·BR·BL)
+현재 위치 P ─▶ 가장 가까운 모서리 C
+경로: P → C → C의 대각 반대 모서리 → 그 옆 모서리(변 이동) → 다시 대각선 → P   (X자)
+길이 L, 시간 = clamp(L / 950px/s, 5s, 16s), easeInOutQuad
 매 프레임(16ms):
-  위치 = 경로 위 점 + 진행 방향에 수직인 물결(±12px · sin)
+  위치 = 경로 위 점 + 진행 방향에 수직인 물결(±14px · sin)
   가장 가까운 모니터 workArea 안으로 clamp   ← 모니터 사이 빈 공간·높이 차 보정
-  pet.setPosition(); 진행 각도(머리가 진행 방향) 변화 시 'pet-fly' {angle} 전송
-종료: 각도를 0°로 되돌린 뒤 400ms 후 원위치 setBounds, alwaysOnTop 레벨 복원, 'end' 전송
+  오버레이 렌더러에 'pet-fly' {x, y, angle} 전송(각도 = 머리가 진행 방향)
+종료: 각도를 0°로 되돌린 뒤 400ms 후 오버레이 숨김, 고양이 창 클릭 통과 해제, 'end' 전송
 ```
 
-비행 중에는 main이 `pet-drag`/`pet-resize`를 무시하고 렌더러가 클릭(망토 던지기)을 막는다. 시작 시 `setAlwaysOnTop(true,'pop-up-menu')`와 `moveTop()`으로 캔버스 위로 올린다.
+고양이 창 자체는 옮기지 않는다. 투명 창을 프레임마다 `setPosition`하면 Windows 합성기가 따라오지 못해 창 영역이 검은 사각형으로 비치기 때문이다. 대신 시작 시 **모니터마다 하나씩** 만들어 둔 비행 오버레이(`pet.html?mode=flight`, 그 모니터 `bounds` 크기에서 높이 1px 축소, 투명, `focusable:false`, `setIgnoreMouseEvents(true)`, `backgroundThrottling:false`, `paintWhenInitiallyHidden:true`)를 `showInactive()`+`moveTop()`으로 띄운다. 모니터와 정확히 같은 크기의 투명 창은 Windows가 전체화면으로 취급해 합성을 끌 수 있어 1px 작게 두고, 모니터 여러 대를 한 창으로 덮지 않는다. 좌표는 화면 전체 기준으로 계산해 각 오버레이 기준으로 바꿔 보내므로 경계에 걸친 고양이는 두 창에 나뉘어 그려진다. 원래 고양이 창은 숨기지 않는다(다시 보일 때 창 관리자가 위치를 바꿀 수 있음). 대신 `setIgnoreMouseEvents(true)`로 클릭을 통과시키고 CSS(`body.flying:not(.flight-overlay) .pet,.clock{visibility:hidden}`)로 내용만 감춘다. 오버레이 렌더러는 시계·알람을 돌리지 않고 `translate(x + 10·scale, y + 52·scale) scale(scale)`로 고양이를 그린다(10·52는 고양이 창 안에서 고양이가 놓이는 위치). 비행 중 main은 `pet-drag`/`pet-resize`를 무시한다. 알람 패널의 `미리보기` 버튼은 알람 없이 같은 비행을 재생한다.
 
 ### 렌더러 비행 자세(pet.css `.pet.flying`)
 
@@ -101,10 +103,10 @@ main.cjs  before-input-event ──(Ctrl/Cmd + W?)──▶ preventDefault ─�
 | 상태 문구 | `오늘|내일 07:30 (n분 후) · 회의 · 매일` | `smoke.cjs` |
 | 프리셋 | `+30분` → `at` ≈ 지금 + 30분(±3초) | `smoke.cjs` |
 | 해제 | `at` = 0, 배지 사라짐 | `smoke.cjs`, `native-smoke.cjs` |
-| 알람 도달 | `ringing` + `flying`, 배지 `⏰ HH:MM 회의`, 창이 이동 후 원위치 복귀 | `smoke.cjs`, `native-smoke.cjs` |
+| 알람 도달 | `ringing` + `flying`, 배지 `⏰ HH:MM 회의`, 고양이 창 내용 숨김·오버레이 표시, 오버레이 고양이 transform 변화, 착지 후 고양이 창 위치 불변·내용 복귀·오버레이 숨김 | `smoke.cjs`, `native-smoke.cjs` |
 | 반복 재예약 | 울린 뒤 `at`가 다음 07:30 | `smoke.cjs` |
 | 착지 후 패널 | `확인`/`5분 뒤 다시` 표시. `5분 뒤 다시` → `at` ≈ 지금 + 5분, `time`·`repeat` 유지 | `smoke.cjs`, `native-smoke.cjs` |
 | 부작용 없음 | 비행 후 캔버스가 열리지 않음 | `smoke.cjs` |
-| 다중 모니터 | 두 번째 모니터 영역까지 도달(테스트 로그의 farthest 좌표) | `native-smoke.cjs` |
+| 다중 모니터 | 오버레이가 모든 모니터 합집합 크기이고 고양이가 두 번째 모니터 영역까지 도달(테스트 로그의 farthest 좌표) | `native-smoke.cjs` |
 
 `window.orbitPet`은 테스트·디버그용 훅(`setAlarm`, `setAlarmAt`, `clearAlarm`, `snooze`, `fly`, `alarm`)이며 렌더러 내부에서만 접근 가능하다. 테스트는 소리를 끄고 실행한다.

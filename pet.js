@@ -1,5 +1,8 @@
 const pet = document.querySelector('.pet');
-let pointer = null, casting = false, flying = false;
+// mode=flight: 모든 모니터를 덮는 투명 오버레이로 열린 경우. 시계·알람은 돌리지 않고 main이 보내는 좌표대로 고양이만 그린다.
+const flightMode = new URLSearchParams(location.search).get('mode') === 'flight';
+document.body.classList.toggle('flight-overlay', flightMode);
+let pointer = null, casting = false, flying = false, flightScale = 1;
 pet.onpointerdown = event => {
   if (event.button !== 0 || casting || flying) return;
   pointer = { x: event.screenX, y: event.screenY, moved: false };
@@ -29,7 +32,7 @@ function cast() {
 document.querySelector('#smaller').onclick = () => window.desktop.petResize(-0.1);
 document.querySelector('#larger').onclick = () => window.desktop.petResize(0.1);
 pet.onwheel = event => { event.preventDefault(); window.desktop.petResize(event.deltaY < 0 ? 0.1 : -0.1); };
-window.desktop.onPetScale(scale => { document.body.style.transform = `scale(${scale})`; document.querySelector('#pet-size').textContent = Math.round(scale * 100) + '%'; });
+window.desktop.onPetScale(scale => { if (flightMode) return; document.body.style.transform = `scale(${scale})`; document.querySelector('#pet-size').textContent = Math.round(scale * 100) + '%'; });
 document.querySelector('.quit').onclick = () => window.desktop.quit();
 
 // ── 시계: 매 분 경계마다 시스템 시간을 다시 그리고, 알람 시각이 지났는지도 함께 확인한다.
@@ -130,21 +133,25 @@ document.querySelectorAll('.alarm-presets button').forEach(button => { button.on
   setAlarmAt(at, { time: hhmm(new Date(at)), label: alarmLabel.value.trim().slice(0, 20), repeat: false, sound: alarmSound.checked }); alarmForm.hidden = true;
 }; });
 document.querySelector('#alarm-clear').onclick = () => { clearAlarm(); alarmForm.hidden = true; };
+document.querySelector('#alarm-preview').onclick = () => { alarmForm.hidden = true; window.desktop.fly(); }; // 알람 없이 비행만 재생
 document.querySelector('#alarm-snooze').onclick = () => snooze();
 document.querySelector('#alarm-stop').onclick = () => stopRinging();
 window.addEventListener('keydown', event => { if (event.key === 'Escape') alarmForm.hidden = true; });
 
 // ── 비행 자세: main 프로세스가 창을 화면 가장자리를 따라 움직이고, 여기서는 진행 방향으로 고양이를 눕혀 슈퍼맨 자세를 만든다.
+function place(state) { // 오버레이 안에서 고양이 창이 있을 자리(창 좌상단 + 창 안 고양이 위치)에 고양이를 놓는다.
+  if (Number.isFinite(state.scale)) flightScale = state.scale;
+  if (Number.isFinite(state.x)) pet.style.transform = `translate(${state.x + 10 * flightScale}px, ${state.y + 52 * flightScale}px) scale(${flightScale})`;
+}
 window.desktop.onFly(state => {
-  if (state.state === 'start') { flying = true; pointer = null; pet.classList.add('flying'); document.body.classList.add('flying'); }
-  else if (state.state === 'move') pet.style.setProperty('--fly-angle', `${state.angle}deg`);
+  if (state.state === 'start') { flying = true; pointer = null; pet.classList.add('flying'); document.body.classList.add('flying'); if (flightMode) place(state); }
+  else if (state.state === 'move') { if (flightMode) place(state); pet.style.setProperty('--fly-angle', `${state.angle}deg`); }
   else if (state.state === 'end') {
     flying = false; pet.classList.remove('flying'); document.body.classList.remove('flying'); pet.style.removeProperty('--fly-angle');
     if (document.body.classList.contains('ringing')) alarmForm.hidden = false; // 착지 후 확인 · 5분 뒤 다시 버튼
   }
 });
 
-tick(); scheduleAlarm(); renderAlarm();
-window.addEventListener('focus', () => renderClock());
+if (!flightMode) { tick(); scheduleAlarm(); renderAlarm(); window.addEventListener('focus', () => renderClock()); }
 // 테스트·디버그용 훅: 알람을 즉시 설정/해제하거나 비행을 바로 재생한다.
 window.orbitPet = { setAlarm, setAlarmAt, clearAlarm, snooze, fly: () => window.desktop.fly(), get alarm() { return { ...alarm }; }, get alarmAt() { return alarm.at; }, get flying() { return flying; } };

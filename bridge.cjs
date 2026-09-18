@@ -1,7 +1,7 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 let active;
-function request(action, prompt, onEvent = () => {}) {
+function request(action, payload, onEvent = () => {}) {
  if (process.platform !== 'win32') return Promise.reject(new Error('Windows 앱으로 실행해야 자동 연결할 수 있습니다.'));
  if (active) return Promise.reject(new Error('이전 연결 작업이 진행 중입니다.'));
  return new Promise((resolve, reject) => {
@@ -13,7 +13,7 @@ function request(action, prompt, onEvent = () => {}) {
   child.stderr.on('data',chunk=>{stderr=(stderr+chunk).slice(-2000);});
   child.on('error',e=>{error=e;});
   child.on('close',()=>{clearTimeout(timer);active=null;if(error)reject(error);else if(result)resolve(result);else reject(new Error(stderr||'연결 작업이 종료되었습니다.'));});
-  child.stdin.on('error',()=>{});child.stdin.end(action==='send'?JSON.stringify({prompt}):'');
+  child.stdin.on('error',()=>{});child.stdin.end(action==='send'?JSON.stringify(payload):'');
  });
 }
 function cancel(){if(active)active.kill();}

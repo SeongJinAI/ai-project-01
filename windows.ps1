@@ -4,7 +4,7 @@ $source = $PSScriptRoot
 $destination = Join-Path $env:LOCALAPPDATA 'OrbitDemo'
 Get-Process electron -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq (Join-Path $destination 'node_modules\electron\dist\electron.exe') } | Stop-Process -Force
 New-Item -ItemType Directory -Force -Path $destination | Out-Null
-$files = @('main.cjs', 'preload.cjs', 'index.html', 'app.js', 'style.css', 'pet.html', 'pet.js', 'pet.css', 'bridge.cjs', 'bridge.ps1')
+$files = @('main.cjs', 'preload.cjs', 'index.html', 'app.js', 'style.css', 'pet.html', 'pet.js', 'pet.css', 'bridge.cjs', 'bridge.ps1', 'errors.cjs', 'cli.cjs', 'detect.cjs', 'backends.cjs')
 foreach ($file in $files) { Copy-Item -LiteralPath (Join-Path $source $file) -Destination $destination -Force }
 Copy-Item -LiteralPath (Join-Path $source 'assets') -Destination $destination -Recurse -Force
 $version = (Get-Content -LiteralPath (Join-Path $source 'node_modules/electron/package.json') -Raw | ConvertFrom-Json).version
